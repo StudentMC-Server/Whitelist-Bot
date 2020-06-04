@@ -1,20 +1,8 @@
-import argparse
-import configparser
 import discord
-import sys
 import asyncio
-import sqlite3
-from ast import literal_eval
-import requests
-import logging
-import datetime
-import time
-from discord.utils import get
 
 
 client = discord.Client()
-config = None
-TOKEN = None
 
 @client.event
 async def on_ready():
@@ -28,6 +16,7 @@ async def on_message(message):
     # If the message is not from a bot, the following code is executed.
     if message.author != client.user:
         if message.content.startswith('!whitelist'):
+            # Discord SRV console channel.
             consoleChat = client.get_channel(717954805678604299)
             minecraftUser = message.content.replace('!whitelist ', '')
             playerRole = get(message.guild.roles, name='Player')
