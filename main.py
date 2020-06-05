@@ -4,7 +4,6 @@ import discord
 import asyncio
 from discord.utils import get
 
-
 client = discord.Client()
 config = None
 TOKEN = None
@@ -14,8 +13,6 @@ async def on_ready():
     """Prints a startup message."""
     print(str(client.user) + ' is online.')
     await client.change_presence(activity=discord.Game(name='!whitelist {username}'))
-
-
 
 @client.event
 async def on_message(message):
@@ -31,8 +28,6 @@ async def on_message(message):
                     )
                 emb.set_footer(text='If you need help joining the server, read #lobby.')
                 await message.channel.send(embed=emb)
-
-
             else:
                 #DiscordSRV console channel.
                 consoleChat = client.get_channel(717954805678604299)
@@ -48,7 +43,6 @@ async def on_message(message):
                     )
                 emb.set_footer(text='If you need help joining the server, read #lobby.')
                 await message.channel.send(embed=emb)
-
 
 def try_config(config, heading, key):
     """Attempt to extract config[heading][key], with error handling.
