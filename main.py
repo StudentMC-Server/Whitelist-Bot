@@ -1,37 +1,33 @@
 import discord
 import asyncio
+import argparse
+import configparser
+import requests
+from discord.ext import commands
+from discord.utils import get
 
+bot = commands.Bot(command_prefix='!', help_command=None)
 
-client = discord.Client()
-
-@client.event
+@bot.event
 async def on_ready():
     """Prints a startup message."""
-    print(str(client.user) + ' is online.')
-    await client.change_presence(activity=discord.Game(name='!whitelist {username}'))
-
-@client.event
-async def on_message(message):
-    """Handle commands."""
-    # If the message is not from a bot, the following code is executed.
-    if message.author != client.user:
-        if message.content.startswith('!whitelist'):
-            # Discord SRV console channel.
-            consoleChat = client.get_channel(717954805678604299)
-            minecraftUser = message.content.replace('!whitelist ', '')
-            playerRole = get(message.guild.roles, name='Player')
-            whitelistMsg = await consoleChat.send('whitelist add {}'.format(minecraftUser))
-            await message.author.add_roles(playerRole)
-            await whitelistMsg.delete(delay=10)
-            emb = discord.Embed(
-            description ='{} has been added to the whitelist.'.format(minecraftUser),
-            title='Whitelist',
-            color=0x3300bd
-            )
-            emb.set_footer(text='If you need help joining the server, read #lobby.')
-            await message.channel.send(embed=emb)
+    print(str(bot.user) + ' is online.')
+    await bot.change_presence(activity=discord.Game(name='!whitelist {username}'))
 
 
+@bot.command()
+async def whitelist(ctx, minecraftUser):
+    playerRole = get(ctx.message.guild.roles, name='Player')
+    whitelistMsg = await ctx.send('whitelist add {}'.format(minecraftUser))
+    await ctx.message.author.add_roles(playerRole)
+    await whitelistMsg.delete(delay=10)
+    emb = discord.Embed(
+        description ='{} has been added to the whitelist.'.format(minecraftUser),
+        title='Whitelist',
+        color=0x3300bd
+    )
+    emb.set_footer(text='If you need help joining the server, read #lobby.')
+    await ctx.channel.send(embed=emb)
 
 def try_config(config, heading, key):
     """Attempt to extract config[heading][key], with error handling.
@@ -71,4 +67,4 @@ if __name__ == "__main__":
     except KeyError:
         sys.exit(1)
 
-    client.run(TOKEN)
+    bot.run(TOKEN)
