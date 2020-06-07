@@ -3,10 +3,12 @@ import configparser
 import discord
 import asyncio
 import requests
+from mcstatus import MinecraftServer
 from discord.ext import commands
 from discord.utils import get
 
 bot = commands.Bot(command_prefix='!', help_command=None)
+server = MinecraftServer.lookup('jfssminecraft.digital')
 
 @bot.event
 async def on_ready():
@@ -14,17 +16,22 @@ async def on_ready():
     print(str(bot.user) + ' is online.')
     await bot.change_presence(activity=discord.Game(name='!whitelist {username}'))
 
-
-@bot.command()
-async def whitelist(ctx, minecraftUser):
-    if ctx.message.channel.id != 718200381301194882:
-        emb = discord.Embed(
+# Utility function to redirect users to use the bot-commands channel
+def redirect():
+    emb = discord.Embed(
             description ='Error: Please use this command in #bot-commands.',
             title='Error',
             color=0x9b59b6
             )
-        emb.set_footer(text='If you need help joining the server, read #lobby.')
-        await ctx.message.channel.send(embed=emb)
+    emb.set_footer(text='If you need help joining the server, read #lobby.')
+    return emb
+
+@bot.command()
+async def whitelist(ctx, minecraftUser):
+    # Skip if not used in bot-commands
+    if ctx.message.channel.id != 718200381301194882:
+        await ctx.message.channel.send(embed=redirect())
+    # Discord SRV integration
     else:
         playerRole = get(ctx.message.guild.roles, name='Player')
         whitelistMsg = await ctx.send('whitelist add {}'.format(minecraftUser))
@@ -36,6 +43,39 @@ async def whitelist(ctx, minecraftUser):
             color=0x3300bd
         )
         emb.set_footer(text='If you need help joining the server, read #lobby.')
+        await ctx.channel.send(embed=emb)
+
+@bot.command()
+async def status(ctx):
+    # Skip if not used in bot-commands
+    if ctx.message.channel.id != 718200381301194882:
+        await ctx.message.channel.send(embed=redirect())
+    else: 
+        emb = discord.Embed(
+            title='',
+        )
+        emb.set_thumbnail(url='https://instagram.fybz2-2.fna.fbcdn.net/v/t51.2885-19/s320x320/102372759_252218775872073_7622047837647273984_n.jpg?_nc_ht=instagram.fybz2-2.fna.fbcdn.net&_nc_ohc=V1U_UcQypBEAX-2BAMb&oh=f52cbedebd5000888123c7431a919321&oe=5F065C34')
+        emb.set_footer(text='If you need help joining the server, read #lobby.')
+        try:
+            status = server.status()
+            ping = server.ping()
+            players = status.players.sample
+            emb.title = 'Server is online :green_circle:'
+            emb.color=0x00C851
+            emb.add_field(name='Ping', value=f'{ping:.2f}ms')
+            # At least 1 player on
+            if players is not None:
+                emb.add_field(name='Total Online', value=f'{status.players.online}/{status.players.max}')
+                all_players = ''
+                for i in players:
+                    all_players += (f'{i.name}\n')
+                emb.add_field(name='Players', value=all_players, inline=False)
+            else:
+                emb.add_field(name='Total Online', value='0')
+        # Catch any exception mcstatus throws
+        except:
+            emb.title = 'Server is offline :red_circle:'
+            emb.color=0xff4444
         await ctx.channel.send(embed=emb)
 
 def try_config(config, heading, key):
