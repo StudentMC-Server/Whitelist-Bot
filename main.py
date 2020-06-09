@@ -14,7 +14,7 @@ server = MinecraftServer.lookup('jfssminecraft.digital')
 async def on_ready():
     """Prints a startup message."""
     print(str(bot.user) + ' is online.')
-    await bot.change_presence(activity=discord.Game(name='!whitelist {username}'))
+    await bot.change_presence(activity=discord.Game(name='!help'))
 
 # Utility function to redirect users to use the bot-commands channel
 def redirect():
@@ -22,14 +22,30 @@ def redirect():
             description ='Error: Please use this command in #bot-commands.',
             title='Error',
             color=0x9b59b6
-            )
+        )
     emb.set_footer(text='If you need help joining the server, read #lobby.')
     return emb
 
 @bot.command()
+async def help(ctx):
+    # Skip if not used in bot-commands
+    if ctx.message.channel.id != int(CHANNEL):
+        await ctx.message.channel.send(embed=redirect())
+    else:
+        emb = discord.Embed(
+            title='Help',
+            color=0x9b59b6
+        )
+        emb.set_footer(text='If you need help joining the server, read #lobby.')
+        emb.add_field(name='!whitelist {username}', value='Whitelists the username on the server', inline=False)
+        emb.add_field(name='!status', value='Display up to 12 names of players on the server', inline=False)
+        await ctx.channel.send(embed=emb)
+
+
+@bot.command()
 async def whitelist(ctx, minecraftUser):
     # Skip if not used in bot-commands
-    if ctx.message.channel.id != 718200381301194882:
+    if ctx.message.channel.id != int(CHANNEL):
         await ctx.message.channel.send(embed=redirect())
     # Discord SRV integration
     else:
@@ -48,7 +64,7 @@ async def whitelist(ctx, minecraftUser):
 @bot.command()
 async def status(ctx):
     # Skip if not used in bot-commands
-    if ctx.message.channel.id != 718200381301194882:
+    if ctx.message.channel.id != int(CHANNEL):
         await ctx.message.channel.send(embed=redirect())
     else: 
         emb = discord.Embed(
@@ -67,6 +83,7 @@ async def status(ctx):
             if players is not None:
                 emb.add_field(name='Total Online', value=f'{status.players.online}/{status.players.max}')
                 all_players = ''
+                players.sort(key=lambda x:x.name.lower())
                 for i in players:
                     all_players += (f'{i.name}\n')
                 emb.add_field(name='Players', value=all_players, inline=False)
@@ -113,6 +130,7 @@ if __name__ == "__main__":
     config.read(args.config)
     try:
         TOKEN = try_config(config, "IDs", "Token")
+        CHANNEL = try_config(config, "IDs", "Channel")
     except KeyError:
         sys.exit(1)
 
