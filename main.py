@@ -50,7 +50,8 @@ async def whitelist(ctx, minecraftUser):
     # Discord SRV integration
     else:
         playerRole = get(ctx.message.guild.roles, name='Player')
-        whitelistMsg = await ctx.send('whitelist add {}'.format(minecraftUser))
+        consoleChat = bot.get_channel(717954805678604299)
+        whitelistMsg = await consoleChat.send('whitelist add {}'.format(minecraftUser))
         await ctx.message.author.add_roles(playerRole)
         await whitelistMsg.delete(delay=10)
         emb = discord.Embed(
@@ -66,7 +67,7 @@ async def status(ctx):
     # Skip if not used in bot-commands
     if ctx.message.channel.id != int(CHANNEL):
         await ctx.message.channel.send(embed=redirect())
-    else: 
+    else:
         emb = discord.Embed(
             title='',
         )
