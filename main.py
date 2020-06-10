@@ -90,7 +90,7 @@ async def status(ctx):
     # Skip if not used in bot-commands
     if ctx.message.channel.id != int(CHANNEL):
         await ctx.message.channel.send(embed=redirect())
-    else: 
+    else:
         emb = discord.Embed(
             title='',
         )
