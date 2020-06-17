@@ -31,8 +31,8 @@ def redirect():
 def error_response(error_text):
     emb = discord.Embed(
             description=error_text,
-            title='Error',
-            color=0x9b59b6
+            title='Error :x:',
+            color=0xff4444
         )
     emb.set_footer(text='For more help with commands, use !help.')
     return emb
@@ -56,12 +56,13 @@ async def help(ctx):
     else:
         emb = discord.Embed(
             title='Help',
-            color=0x9b59b6
+            color=0x9b59b6,
+            description="The curly braces {} should not be included in the actual command"
         )
         emb.set_footer(text='If you need help joining the server, read #lobby.')
         emb.add_field(name='!whitelist {username}', value='Whitelists the username on the server', inline=False)
         emb.add_field(name='!status', value='Display up to 12 names of players on the server', inline=False)
-        emb.add_field(name='!listing {buy/sell} {quantity} {price/item} {item name}', value='Creates an item listing in the advertisements channale', inline=False)
+        emb.add_field(name='!listing {buy/sell} {quantity} {price/item} {item name}', value='Creates an item listing in the advertisements channel', inline=False)
         await ctx.channel.send(embed=emb)
 
 
@@ -78,7 +79,7 @@ async def whitelist(ctx, minecraftUser):
         await ctx.message.author.add_roles(playerRole)
         await whitelistMsg.delete(delay=10)
         emb = discord.Embed(
-            description ='{} has been added to the whitelist.'.format(minecraftUser),
+            description = f'{minecraftUser} has been added to the whitelist.',
             title='Whitelist',
             color=0x3300bd
         )
@@ -122,7 +123,7 @@ async def status(ctx):
 
 # Create item listing in #advertisement channel
 @bot.command()
-async def listing(ctx, action='', quantity='', price='', *item):
+async def listing(ctx, action=None, quantity=None, price=None, *item):
     # Skip if not used in bot-commands
     if ctx.message.channel.id != int(CHANNEL):
         await ctx.message.channel.send(embed=redirect())
@@ -132,14 +133,15 @@ async def listing(ctx, action='', quantity='', price='', *item):
             title=str(author),
             description="Click the ✅ to mark the trade as completed"
         )
-        if action.lower() == 'buy':
+        if action is None or quantity is None or price is None:
+            print('success')
+            await ctx.channel.send(embed=error_response("Invalid parameters, use !help for more information"))
+        elif action.lower() == 'buy':
             emb.add_field(name='Action', value='Buying')
             emb.color = 0x4285F4
         elif action.lower() == 'sell':
             emb.add_field(name='Action', value='Selling')
             emb.color = 0xf04747
-        else:
-            await ctx.channel.send(embed=error_response("Error: Action must be buy or sell"))
             
         # Join with _ for url retrieval
         item = list(item)
@@ -181,8 +183,13 @@ async def listing(ctx, action='', quantity='', price='', *item):
                         "For more information, visit https://www.digminecraft.com/lists/item_id_list_pc.php")
         shop_channel = bot.get_channel(int(SHOP_CHANNEL))
         msg = await shop_channel.send(embed=emb)
+        success = discord.Embed(
+            title="Listing successfully created ✅",
+            description=f"Head over to <#{SHOP_CHANNEL}> to see your listing",
+            color=0x00C851
+        )
+        await ctx.channel.send(embed=success)
         await msg.add_reaction('✅')
-        await ctx.message.delete()
 
 def try_config(config, heading, key):
     """Attempt to extract config[heading][key], with error handling.
